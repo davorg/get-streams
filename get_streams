@@ -18,76 +18,116 @@ processing elsewhere.
 use strict;
 use warnings;
 
-use LWP::Simple;
+require BBCRobot;
+
 use HTML::TreeBuilder;
 use URI;
 use YAML qw(DumpFile);
 
 my $yaml_file = shift || 'streams.yaml';
 
-my $start_url = 'http://www.bbc.co.uk/radio/aod/';
+my $start_url = 'http://www.bbc.co.uk/radio/aod/index_noframes.shtml';
+
+my $ua = BBCRobot->new;
 
 my $doc = HTML::TreeBuilder->new;
-$doc->parse(get $start_url);
+
+$doc->parse(get($start_url));
 
 my @stations;
 
-foreach ($doc->look_down(_tag => 'div',
-                         class => qr/index-left-top\da/)) {
-  my %station;
-  my $a = a_href($_->find('a'));
-  my $live = $a->{href};
-  $station{name} = $a->{text};
-  $live =~ s/_promo//;
-  $station{live} = get_stream($live);
-  $station{shows} = get_shows($a);
+my $div = $doc->look_down(_tag => 'div',
+                          id   => 'network');
 
-  push @stations, \%station;
+die "No stations found\n" unless $div;
+
+foreach ($div->find('a')) {
+  my %station;
+  my $a = a_href($_, $start_url);
+  my $station = get_station($a->{href}->as_string, lc $a->{text});
+  $station->{name} = $a->{text};
+
+  push @stations, $station;
+
+  last if @stations == 2;
 }
 
 DumpFile $yaml_file, \@stations;
 
-sub get_shows {
-  my $a = shift;
+sub get {
+  my $url = shift;
 
-  my $doc = HTML::TreeBuilder->new;
-  $doc->parse(get $a->{href}); 
+  my $r = $ua->get($url);
 
-  my @shows;
+  die "$url => " . $r->status_line if $r->is_error;
 
-  my $div = $doc->look_down(_tag => 'div',
-                            class => 'aodlinkarea');
-
-  foreach ($div->look_down(_tag => 'a',
-                           href => qr|^/radio/aod/|)) {
-    my $show = a_href($_);
-    next unless $show->{text} =~ /\S/;
-    next if $show->{href} =~ /focuswin$/;
-    push @shows, { name => $show->{text},
-                   stream => get_stream($show->{href}) };
-  }
-
-  return \@shows;
+  return $r->content;
 }
 
-sub get_stream {
-  my $href = shift;
+sub get_station {
+  my $url = shift;
+  my $name = shift;
 
-  my $doc = HTML::TreeBuilder->new->parse(get $href);
+  my $doc = HTML::TreeBuilder->new;
+  $doc->parse(get($url));
+
+  $url =~ s/noframes.shtml\?//;
+  $url =~ s|$|/|;
+
+  my $station;
+
+  my $live_div = $doc->look_down(_tag => 'div',
+                                 id   => 'livelinks');
+
+  if ($live_div) {
+    foreach ($live_div->find('a')) {
+      push @{$station->{live}}, get_streams($_, $url);
+    }
+  } else {
+    warn "No live links found at $url\n";
+  }
+
+  my $az_div = $doc->look_down(_tag => 'div',
+                               id   => 'az');
+
+  if ($az_div) {
+    foreach my $prog ($az_div->find('li')) {
+      push @{$station->{az}},
+           map { get_streams($_, $url) } $prog->find('a');
+    }
+  } else {
+    warn "No program links found at $url\n";
+  }
+
+  return $station;
+}
+
+sub get_streams {
+  my $elem = shift;
+  my $base = shift;
+
+  my $a = a_href($elem, $base);
+
+  my $doc = HTML::TreeBuilder->new->parse(get($a->{href}->as_string));
   my $emb = $doc->find('embed');
   unless ($emb) {
-    warn "No <embed> in $href\n";
+    warn 'No <embed> ' . $a->{href}->as_string . "\n";
     return;
   }
   my %attrs = $emb->all_attr;
-  my $ram = get $attrs{src};
+  my $ram = get(URI->new_abs($attrs{src}, $base)->as_string);
   my @streams = $ram =~ /^\s*((?:rtsp|pnm):\S+)/mg;
 
-  return \@streams;
+  $a->{ram} = URI->new_abs($attrs{src}, $base)->as_string;
+  $a->{streams} = \@streams;
+  $a->{href} = $a->{href}->as_string;
+
+  return $a;
 }
 
 sub a_href {
   my $a = shift;
+  my $base = shift;
 
   my %a = $a->all_attr;
 
@@ -95,7 +135,7 @@ sub a_href {
   $text =~ s/^\s+//;
   $text =~ s/\s+$//;
 
-  return { href => URI->new_abs($a{href}, $start_url),
+  return { href => URI->new_abs($a{href}, $base),
            text => $text };
 }
 
