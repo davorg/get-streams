@@ -21,7 +21,7 @@ google_ad_channel ="2569871665";
     <div id="menu">
     <p>
 [% FOREACH station IN stations %]
-      <a href="#[% station.name %]">[% station.name %]</a><br />
+      <a href="#[% station.name | uri | html %]">[% station.name | html %]</a><br />
 [% END %]
     </p>
     </div>
@@ -30,16 +30,16 @@ google_ad_channel ="2569871665";
     <table>
 [% FOREACH station IN stations %]
       <tr>
-        <th colspan="2"><a name="[% station.name %]">[% station.name %]</a></th>
+        <th colspan="2"><a name="[% station.name | uri | html %]">[% station.name | html %]</a></th>
       </tr>
       <tr>
         <td>Listen Live</td>
-        <td>[% FOREACH s IN station.live %]<a href="[% s %]">[% s %]</a>[% '<br />' UNLESS loop.last; END %]</td>
+        <td>[% FOREACH s IN station.live %]<a href="[% s | uri | html %]">[% s %]</a>[% '<br />' UNLESS loop.last; END %]</td>
       </tr>
 [% FOREACH show IN station.shows %]
       <tr>
         <td>[% show.name %]</td>
-        <td>[% FOREACH s IN show.stream %]<a href="[% s %]">[% s %]</a>[% '<br />' UNLESS loop.last; END %]</td>
+        <td>[% FOREACH s IN show.stream %]<a href="[% s | uri | html %]">[% s | html %]</a>[% '<br />' UNLESS loop.last; END %]</td>
       </tr>
 [% END %]
 [% END %]
