@@ -1,5 +1,7 @@
 body {
   font-family: arial, helvetica, san-serif;
+  margin: 0;
+  padding; 0;
 }
 a:link, a:visited {
   text-decoration: none;
@@ -13,7 +15,7 @@ a:link:hover, a:visited:hover {
   left: 10px;
   width: 150px;
   border: solid 2px #ccf;
-  padding: 0;
+  padding: 5px;
   margin; 0;
 }
 #menu p {
@@ -25,12 +27,25 @@ a:link:hover, a:visited:hover {
   position: absolute;
   top: 10px;
   left: 200px;
+  right: 20px;
 }
 h1 {
+  margin: 0;
   background-color: #ccf;
+  padding: 5px;
+}
+table {
+  width: 100%;
+}
+th, td {
+  vertical-align: top;
 }
 th {
   background-color: #ccf;
-  color: #00f;
+  color: #66f;
   text-align: left;
+}
+td.title {
+  color: #ccf;
+  background-color: #66f;
 }

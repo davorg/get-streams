@@ -2,22 +2,13 @@
    DEFAULT file = 'streams.yaml';
    USE YAML;
    stations = YAML.undumpfile(file) -%]
+[% USE dumper %]
 <html>
   <head>
     <title>BBC Radio Streams</title>
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
-<script type="text/javascript"><!--
-google_ad_client = "pub-3663319204757145";
-google_ad_width = 728;
-google_ad_height = 90;
-google_ad_format = "728x90_as";
-google_ad_channel ="2569871665";
-//--></script>
-<script type="text/javascript"
-  src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
     <div id="menu">
     <p>
 [% FOREACH station IN stations %]
@@ -27,19 +18,41 @@ google_ad_channel ="2569871665";
     </div>
     <div id="content">
     <h1>BBC Radio Streams</h1>
+    <p>So here's the new version of the BBC streams page. It's still a bit
+of a work in progress, but I thought that this was better than all the email
+I was getting calling me a slacker :-)</p>
+    <p>Still some work to do, especially on the local radio stations, so
+keep watching this space for improvements.</p>
+    <p>A couple of new features. Firstly there are now some Windows media
+links on the "Listen Live" pages, so we no pick those up too when they are
+available. Secondly, as well as the links to the raw streams, we also have
+http links which should open up your Real Player when you click on them
+(as long as your browser is configured correctly).</p>
+    <p>Please let me know if you find this page useful or if you have any
+suggestions for improvements.</p>
+    <p align="right">Cheers, Dave...</p>
     <table>
 [% FOREACH station IN stations %]
       <tr>
         <th colspan="2"><a name="[% station.name | uri | html %]">[% station.name | html %]</a></th>
       </tr>
       <tr>
-        <td>Listen Live</td>
-        <td>[% FOREACH s IN station.live %]<a href="[% s | uri | html %]">[% s %]</a>[% '<br />' UNLESS loop.last; END %]</td>
+        <td width="20%">Listen Live</td>
+        <td>[% FOREACH s IN station.live %]
+<a href="[% s.ram | uri | html %]">http link</a> [% IF s.ram.match('asx$') %]Windows Media [% s.text %] [% END %]
+[% FOREACH st IN s.streams %]
+<a href="[% st | uri | html %]">[% st | uri | html %]</a>
+[% END %]<br />[% END %]</td>
       </tr>
-[% FOREACH show IN station.shows %]
+[% FOREACH show IN station.az %]
       <tr>
-        <td>[% show.name %]</td>
-        <td>[% FOREACH s IN show.stream %]<a href="[% s | uri | html %]">[% s | html %]</a>[% '<br />' UNLESS loop.last; END %]</td>
+        <td class="title" colspan="2">[% show.text %]</td>
+      </tr>
+      <tr>
+        <td colspan="2"><a href="[% show.ram | uri | html %]">http link</a><br />
+stream: [% FOREACH st IN show.streams %]
+            <a href="[% st | uri | html %]">[% st | uri | html %]</a>
+[% END %]</td>
       </tr>
 [% END %]
 [% END %]
