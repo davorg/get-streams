@@ -29,7 +29,6 @@ my $start_url = 'http://www.bbc.co.uk/radio/aod/';
 
 my $doc = HTML::TreeBuilder->new;
 $doc->parse(get $start_url);
-$doc->eof;
 
 my @stations;
 
