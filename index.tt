@@ -1,4 +1,5 @@
-[% DEFAULT file = 'streams.yaml';
+[% USE date;
+   DEFAULT file = 'streams.yaml';
    USE YAML;
    stations = YAML.undumpfile(file) -%]
 <html>
@@ -33,6 +34,9 @@
 [% END %]
 [% END %]
     </table>
+    <hr />
+    <p>Generated at [% date.format(date.now, '%D %b %Y, %H:%M:%S') %]<br />
+      <a href="mailto:dave@dave.org.uk">dave@dave.org.uk</a></p>
     </div>
   </body>
 </html>
