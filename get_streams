@@ -1,0 +1,115 @@
+#!/usr/bin/perl
+# $Id$
+
+=head1 NAME
+
+get_streams
+
+=head1 DESCRIPTION
+
+Program to spider the BBC Radio web site and look for all of the Real
+Audio programme streams.
+
+The streams that are found are then written to an YAML file for later
+processing elsewhere.
+
+=cut
+
+use strict;
+use warnings;
+
+use LWP::Simple;
+use HTML::TreeBuilder;
+use URI;
+use YAML qw(DumpFile);
+
+my $yaml_file = shift || 'streams.yaml';
+
+my $start_url = 'http://www.bbc.co.uk/radio/aod/';
+
+my $doc = HTML::TreeBuilder->new;
+$doc->parse(get $start_url);
+$doc->eof;
+
+my @stations;
+
+foreach ($doc->look_down(_tag => 'div',
+                         class => qr/index-left-top\da/)) {
+  my %station;
+  my $a = a_href($_->find('a'));
+  my $live = $a->{href};
+  $station{name} = $a->{text};
+  $live =~ s/_promo//;
+  $station{live} = get_stream($live);
+  $station{shows} = get_shows($a);
+
+  push @stations, \%station;
+}
+
+DumpFile $yaml_file, \@stations;
+
+sub get_shows {
+  my $a = shift;
+
+  my $doc = HTML::TreeBuilder->new;
+  $doc->parse(get $a->{href}); 
+
+  my @shows;
+
+  my $div = $doc->look_down(_tag => 'div',
+                            class => 'aodlinkarea');
+
+  foreach ($div->look_down(_tag => 'a',
+                           href => qr|^/radio/aod/|)) {
+    my $show = a_href($_);
+    next unless $show->{text} =~ /\S/;
+    next if $show->{href} =~ /focuswin$/;
+    push @shows, { name => $show->{text},
+                   stream => get_stream($show->{href}) };
+  }
+
+  return \@shows;
+}
+
+sub get_stream {
+  my $href = shift;
+
+  my $doc = HTML::TreeBuilder->new->parse(get $href);
+  my $emb = $doc->find('embed');
+  unless ($emb) {
+    warn "No <embed> in $href\n";
+    return;
+  }
+  my %attrs = $emb->all_attr;
+  my $ram = get $attrs{src};
+  if ($ram =~ /^(rt.*?)$/m) {
+    return $1;
+  }
+  return;
+}
+
+sub a_href {
+  my $a = shift;
+
+  my %a = $a->all_attr;
+
+  my $text = $a->as_text;
+  $text =~ s/^\s+//;
+  $text =~ s/\s+$//;
+
+  return { href => URI->new_abs($a{href}, $start_url),
+           text => $text };
+}
+
+=head1 AUTHOR
+
+Dave Cross E<lt>dave@dave.org.ukE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2004, Dave Cross, All rights reserved.
+
+This library is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut

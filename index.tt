@@ -1,0 +1,38 @@
+[% DEFAULT file = 'streams.yaml';
+   USE YAML;
+   stations = YAML.undumpfile(file) -%]
+<html>
+  <head>
+    <title>BBC Radio Streams</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body>
+    <div id="menu">
+    <p>
+[% FOREACH station IN stations %]
+      <a href="#[% station.name %]">[% station.name %]</a><br />
+[% END %]
+    </p>
+    </div>
+    <div id="content">
+    <h1>BBC Radio Streams</h1>
+    <table>
+[% FOREACH station IN stations %]
+      <tr>
+        <th colspan="2"><a name="[% station.name %]">[% station.name %]</a></th>
+      </tr>
+      <tr>
+        <td>Listen Live</td>
+        <td><a href="[% station.live %]">[% station.live %]</a></td>
+      </tr>
+[% FOREACH show IN station.shows %]
+      <tr>
+        <td>[% show.name %]</td>
+        <td><a href="[% show.stream %]">[% show.stream %]</a></td>
+      </tr>
+[% END %]
+[% END %]
+    </table>
+    </div>
+  </body>
+</html>

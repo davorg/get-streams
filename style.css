@@ -1,0 +1,36 @@
+body {
+  font-family: arial, helvetica, san-serif;
+}
+a:link, a:visited {
+  text-decoration: none;
+}
+a:link:hover, a:visited:hover {
+  text-decoration: underline;
+}
+#menu {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 150px;
+  border: solid 2px #ccf;
+  padding: 0;
+  margin; 0;
+}
+#menu p {
+  padding: 0;
+  margin; 0;
+  border: 0;
+}
+#content {
+  position: absolute;
+  top: 10px;
+  left: 200px;
+}
+h1 {
+  background-color: #ccf;
+}
+th {
+  background-color: #ccf;
+  color: #00f;
+  text-align: left;
+}
