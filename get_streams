@@ -81,7 +81,7 @@ sub get_stream {
   }
   my %attrs = $emb->all_attr;
   my $ram = get $attrs{src};
-  if ($ram =~ /^(rt.*?)$/m) {
+  if ($ram =~ /^\s*((rtsp|pnm):\S+)/m) {
     return $1;
   }
   return;
