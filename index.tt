@@ -8,6 +8,16 @@
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
+<script type="text/javascript"><!--
+google_ad_client = "pub-3663319204757145";
+google_ad_width = 728;
+google_ad_height = 90;
+google_ad_format = "728x90_as";
+google_ad_channel ="2569871665";
+//--></script>
+<script type="text/javascript"
+  src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
     <div id="menu">
     <p>
 [% FOREACH station IN stations %]
