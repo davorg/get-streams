@@ -34,12 +34,12 @@ google_ad_channel ="2569871665";
       </tr>
       <tr>
         <td>Listen Live</td>
-        <td><a href="[% station.live %]">[% station.live %]</a></td>
+        <td>[% FOREACH s IN station.live %]<a href="[% s %]">[% s %]</a>[% '<br />' UNLESS loop.last; END %]</td>
       </tr>
 [% FOREACH show IN station.shows %]
       <tr>
         <td>[% show.name %]</td>
-        <td><a href="[% show.stream %]">[% show.stream %]</a></td>
+        <td>[% FOREACH s IN show.stream %]<a href="[% s %]">[% s %]</a>[% '<br />' UNLESS loop.last; END %]</td>
       </tr>
 [% END %]
 [% END %]

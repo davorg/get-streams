@@ -81,10 +81,9 @@ sub get_stream {
   }
   my %attrs = $emb->all_attr;
   my $ram = get $attrs{src};
-  if ($ram =~ /^\s*((rtsp|pnm):\S+)/m) {
-    return $1;
-  }
-  return;
+  my @streams = $ram =~ /^\s*((?:rtsp|pnm):\S+)/mg;
+
+  return \@streams;
 }
 
 sub a_href {
@@ -106,9 +105,9 @@ Dave Cross E<lt>dave@dave.org.ukE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2004, Dave Cross, All rights reserved.
+Copyright 2005, Dave Cross, All rights reserved.
 
-This library is free software; you can redistribute it and/or modify it
+This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
