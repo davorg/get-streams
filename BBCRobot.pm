@@ -10,19 +10,22 @@ our @ISA = qw(LWP::RobotUA);
 
 my %defaults = (
 		agent => 'BBC Stream Crawler (http://dave.org.uk/streams/)',
-		from => 'dave@dave.org.uk',
-		delay => 1/6
+		delay => 3,
 		);
 
 sub new {
   my $class = shift;
 
   my $agent = shift || $defaults{agent};
-  my $from  = shift || $defaults{from};
+  my $from  = $ENV{BBC_ROBOT_FROM}
+    || die 'You must set the environment variable BBC_ROBOT_FROM ' .
+      "to be your email address\n";
   my $rules = shift;
+  my $delay = $ENV{BBC_ROBOT_DELAY} || $defaults{delay};
 
   my $ua = $class->SUPER::new($agent, $from, $rules);
-  $ua->delay($defaults{delay});
+  warn "Robot delay is $delay second(s)\n";
+  $ua->delay($delay);
 
   return $ua;
 }

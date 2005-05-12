@@ -42,14 +42,15 @@ my $div = $doc->look_down(_tag => 'div',
 die "No stations found\n" unless $div;
 
 foreach ($div->find('a')) {
-  my %station;
   my $a = a_href($_, $start_url);
+  warn "Getting $a->{text}\n";
   my $station = get_station($a->{href}->as_string, lc $a->{text});
   $station->{name} = $a->{text};
+  $station->{url} = $a->{href}->as_string;
 
   push @stations, $station;
 
-  last if @stations == 2;
+  # last if @stations >= 2;
 }
 
 DumpFile $yaml_file, \@stations;
@@ -71,9 +72,6 @@ sub get_station {
   my $doc = HTML::TreeBuilder->new;
   $doc->parse(get($url));
 
-  $url =~ s/noframes.shtml\?//;
-  $url =~ s|$|/|;
-
   my $station;
 
   my $live_div = $doc->look_down(_tag => 'div',
@@ -92,8 +90,10 @@ sub get_station {
 
   if ($az_div) {
     foreach my $prog ($az_div->find('li')) {
+      warn "  Getting " . $prog->as_text . "\n";
       push @{$station->{az}},
            map { get_streams($_, $url) } $prog->find('a');
+      # last if @{$station->{az}} >= 2;
     }
   } else {
     warn "No program links found at $url\n";
