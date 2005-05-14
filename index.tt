@@ -2,8 +2,12 @@
    DEFAULT file = 'streams.yaml';
    USE YAML;
    stations = YAML.undumpfile(file) -%]
-[% USE dumper %]
-<html>
+[% USE dumper -%]
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>BBC Radio Streams</title>
     <link rel="stylesheet" type="text/css" href="style.css" />
@@ -11,27 +15,15 @@
   <body>
     <div id="menu">
     <p>
+      <a href="#top"><b>Top</b></a><br />
 [% FOREACH station IN stations %]
       <a href="#[% station.name | uri | html %]">[% station.name | html %]</a><br />
 [% END %]
     </p>
     </div>
     <div id="content">
-    <h1>BBC Radio Streams</h1>
-    <p>Ok, the <tt>get_streams</tt> program was broken for a while there,
-      but now it's working again, so I've rerun it and we have an up to
-      date list for the first time for weeks.</p>
-    <p>I've also includes a link to the YAML file at the bottom of this
-      page, you might want to take a look at that rather than running
-      <tt>get_streams</tt> yourself. I suppose that means I should
-      document the data structure at some point...</p>
-    <p>By the way, I'm watching
-      <a href="http://backstage.bbc.co.uk/">Backstage</a> with great
-      interest. Maybe something will come out of it that will mean I
-      don't have to screenscrape this stuff.</p>
-    <p>As always, I'm interested in hearing any comments or suggestions.
-      My email address is at the bottom of the page.</p>
-    <p align="right">Cheers, Dave...</p>
+    <h1><a name="top">BBC Radio Streams</a></h1>
+    <!--#include virtual="message.html" -->
     <table>
 [% FOREACH station IN stations %]
       <tr>
@@ -53,9 +45,12 @@
         <td colspan="2"><a href="[% show.ram | uri | html %]">http link</a><br />
 stream: [% FOREACH st IN show.streams %]
             <a href="[% st | uri | html %]">[% st | uri | html %]</a>
-[% END %]</td>
+[% END %][% IF show.days %]<ul>[% FOREACH d IN show.days %]<li>[% d.text %] <a href="[% d.ram | uri | html %]">http link</a>
+[% FOREACH dst IN d.streams %]
+<a href="[% dst | uri | html %]">[% dst | uri | html %]</a>
+[% END %]<br />[% END %]</td>
+[% END %][% END %]</td>
       </tr>
-[% END %]
 [% END %]
     </table>
     <hr />
