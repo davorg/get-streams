@@ -50,7 +50,7 @@ foreach ($div->find('a')) {
 
   push @stations, $station;
 
-  # last if @stations >= 2;
+  last if @stations >= 2;
 }
 
 DumpFile $yaml_file, \@stations;
@@ -91,9 +91,15 @@ sub get_station {
   if ($az_div) {
     foreach my $prog ($az_div->find('li')) {
       warn "  Getting " . $prog->as_text . "\n";
-      push @{$station->{az}},
-           map { get_streams($_, $url) } $prog->find('a');
-      # last if @{$station->{az}} >= 2;
+      foreach ($prog->find('a')) {
+	my $bcast = get_streams($_, $url);
+	if ($bcast->{text} =~ /^(SUN|MON|TUE|WED|THU|FRI|SAT)$/) {
+	  push @{$station->{az}[-1]{days}}, $bcast;
+	} else {
+	  push @{$station->{az}}, $bcast;
+	}
+      }
+      last if @{$station->{az}} >= 2;
     }
   } else {
     warn "No program links found at $url\n";
