@@ -24,7 +24,7 @@ sub new {
   my $delay = $ENV{BBC_ROBOT_DELAY} || $defaults{delay};
 
   my $ua = $class->SUPER::new($agent, $from, $rules);
-  warn "Robot delay is $delay second(s)\n";
+  warn "Robot delay is $delay minute(s)\n";
   $ua->delay($delay);
 
   return $ua;
