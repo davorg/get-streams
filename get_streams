@@ -50,7 +50,7 @@ foreach ($div->find('a')) {
 
   push @stations, $station;
 
-  last if @stations >= 2;
+  last if $ENV{BBC_STREAMS_DEBUG} and @stations >= 2;
 }
 
 DumpFile $yaml_file, \@stations;
@@ -99,7 +99,7 @@ sub get_station {
 	  push @{$station->{az}}, $bcast;
 	}
       }
-      last if @{$station->{az}} >= 2;
+      last if $ENV{BBC_STREAMS_DEBUG} and @{$station->{az}} >= 2;
     }
   } else {
     warn "No program links found at $url\n";
