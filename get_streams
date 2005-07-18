@@ -124,6 +124,8 @@ sub get_streams {
   my $ram = get(URI->new_abs($attrs{src}, $base)->as_string);
   my @streams = $ram =~ /^\s*((?:rtsp|pnm):\S+)/mg;
 
+  $a->{standalone} = $doc->as_HTML =~ /stand-alone Real Player/;
+  $a->{radplay} = $a->{href}->as_string;
   $a->{ram} = URI->new_abs($attrs{src}, $base)->as_string;
   $a->{streams} = \@streams;
   $a->{href} = $a->{href}->as_string;
