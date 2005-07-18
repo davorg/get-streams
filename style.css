@@ -11,21 +11,22 @@ a:link:hover, a:visited:hover {
 }
 #menu {
   position: fixed;
-  top: 10px;
+  top: 100px;
   left: 10px;
   width: 150px;
   border: solid 2px #ccf;
   padding: 5px;
   margin; 0;
+  font-size: 0.75em;
 }
 #menu p {
   padding: 0;
-  margin; 0;
+  margin: 0;
   border: 0;
 }
 #content {
   position: absolute;
-  top: 10px;
+  top: 100px;
   left: 200px;
   right: 20px;
 }
