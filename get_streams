@@ -60,7 +60,7 @@ sub get {
 
   my $r = $ua->get($url);
 
-  die "$url => " . $r->status_line if $r->is_error;
+  warn "$url => " . $r->status_line if $r->is_error;
 
   return $r->content;
 }
