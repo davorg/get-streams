@@ -45,8 +45,10 @@ th {
   background-color: #ccf;
   color: #66f;
   text-align: left;
+  font-weight: bold;
 }
 td.title {
   color: #ccf;
   background-color: #66f;
+  font-weight: bold;
 }
