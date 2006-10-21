@@ -45,7 +45,7 @@ google_color_text = "333333";
     <h1><a name="top">BBC Radio Streams</a></h1>
     <table>
       <tr>
-        <th colspan="2"><a name="[% station.name | uri | html %]">[% station.name | html %]</a></th>
+        <th colspan="2"><a name="[% station.name | uri | html %]"><h2>[% station.name | html %]</h2></a></th>
       </tr>
       <tr>
         <td width="20%">Listen Live</td>
@@ -58,7 +58,7 @@ google_color_text = "333333";
       </tr>
 [% FOREACH show IN station.az %]
       <tr>
-        <td class="title" colspan="2">[% show.text %]</td>
+        <td class="title" colspan="2"><h3>[% show.text %]</h3></td>
       </tr>
       <tr>
         <td colspan="2"><a href="javascript:rad_play('[% show.radplay | uri | html %]')">radio player</a>
