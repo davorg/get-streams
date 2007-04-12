@@ -1,7 +1,11 @@
+body, h1, h2, h3, tr, th, td, p {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: arial, helvetica, san-serif;
-  margin: 0;
-  padding; 0;
 }
 a:link, a:visited {
   text-decoration: none;
@@ -20,9 +24,6 @@ a:link:hover, a:visited:hover {
   font-size: 0.75em;
 }
 #menu p {
-  padding: 0;
-  margin: 0;
-  border: 0;
 }
 #content {
   position: absolute;
@@ -30,16 +31,18 @@ a:link:hover, a:visited:hover {
   left: 200px;
   right: 20px;
 }
+h1, h2, h3 {
+  width: 100%;
+}
 h1 {
-  margin: 0;
   background-color: #ccf;
-  padding: 5px;
 }
 table {
   width: 100%;
 }
 th, td {
   vertical-align: top;
+  padding: 3px;
 }
 th {
   background-color: #ccf;
@@ -53,8 +56,5 @@ td.title {
   font-weight: bold;
 }
 h2,h3 {
-  padding: 1px;
-  border: 0;
-  margin: 0;
   font-size: 1em;
 }
