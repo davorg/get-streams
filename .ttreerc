@@ -26,6 +26,7 @@ recurse
 ignore = \b(CVS|RCS)\b
 ignore = ^#
 ignore = \.yaml$
+ignore = .svn
 
 # ditto for things that should be copied rather than processed.
 copy = \.png$ 
