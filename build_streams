@@ -1,0 +1,13 @@
+#!/bin/sh
+
+cd /home/dave/src/get_streams
+
+export BBC_ROBOT_FROM=dave@dave.org.uk
+export BBC_ROBOT_DELAY=0.00125
+export TTREERC=./.ttreerc
+
+./get_streams
+cp streams.yaml in
+touch in/index.tt
+ttree
+sudo cp out/* ~davorg/httpdocs/streams
