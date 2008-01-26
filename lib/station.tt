@@ -37,7 +37,7 @@ google_color_text = "333333";
     <p>
       <a href="/streams/"><b>Top</b></a><br />
 [% FOREACH menu_station IN stations %]
-      <a href="[% menu_station.name | uri | html %].html">[% menu_station.name | html %]</a><br />
+      <a href="[% menu_station.name | url | html %].html">[% menu_station.name | html %]</a><br />
 [% END %]
     </p>
     </div>
@@ -45,15 +45,15 @@ google_color_text = "333333";
     <h1><a name="top">BBC Radio Streams</a></h1>
     <table>
       <tr>
-        <th colspan="2"><a name="[% station.name | uri | html %]"><h2>[% station.name | html %]</h2></a></th>
+        <th colspan="2"><a name="[% station.name | url | html %]"><h2>[% station.name | html %]</h2></a></th>
       </tr>
       <tr>
         <td width="20%">Listen Live</td>
         <td>[% FOREACH s IN station.live %]
-<a href="javascript:rad_play('[% s.radplay | uri | html %]')">radio player</a> [% IF s.ram.match('asx$') %]Windows Media [% s.text %] [% END %]
+<a href="javascript:rad_play('[% s.radplay | url | html %]')">radio player</a> [% IF s.ram.match('asx$') %]Windows Media [% s.text %] [% END %]
 [% IF s.standalone -%]
 [% FOREACH st IN s.streams %]
-/ <a href="[% st | uri | html %]">real player</a>
+/ <a href="[% st | url | html %]">real player</a>
 [% END %][% END %]<br />[% END %]</td>
       </tr>
 [% FOREACH show IN station.az %]
@@ -61,12 +61,12 @@ google_color_text = "333333";
         <td class="title" colspan="2"><h3>[% show.text %]</h3></td>
       </tr>
       <tr>
-        <td colspan="2"><a href="javascript:rad_play('[% show.radplay | uri | html %]')">radio player</a>
+        <td colspan="2"><a href="javascript:rad_play('[% show.radplay | url | html %]')">radio player</a>
 [% IF show.standalone %][% FOREACH st IN show.streams %]
-/ <a href="[% st | uri | html %]">real player</a>
-[% END %][% END %][% IF show.days %]<ul>[% FOREACH d IN show.days %]<li>[% d.text %] <a href="javascript:rad_play('[% d.radplay | uri | html %]')">radio player</a>
+/ <a href="[% st | url | html %]">real player</a>
+[% END %][% END %][% IF show.days %]<ul>[% FOREACH d IN show.days %]<li>[% d.text %] <a href="javascript:rad_play('[% d.radplay | url | html %]')">radio player</a>
 [% IF show.standalone %][% FOREACH dst IN d.streams %]
-/ <a href="[% dst | uri | html %]">real player</a>
+/ <a href="[% dst | url | html %]">real player</a>
 [% END %][% END %]<br />[% END %]</td>
 [% END %][% END %]</td>
       </tr>
