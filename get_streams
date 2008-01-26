@@ -93,7 +93,7 @@ sub get_station {
       warn "  Getting " . $prog->as_text . "\n";
       foreach ($prog->find('a')) {
 	my $bcast = get_streams($_, $url);
-	if ($bcast->{text} =~ /^(SUN|MON|TUE|WED|THU|FRI|SAT)$/) {
+	if ($bcast->{text} =~ /^(SUN|MON|TUE|WED|THU|FRI|SAT)$/i) {
 	  push @{$station->{az}[-1]{days}}, $bcast;
 	} else {
 	  push @{$station->{az}}, $bcast;
