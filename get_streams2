@@ -1,0 +1,217 @@
+#!/usr/bin/perl
+# $Id: get_streams 42 2008-01-26 21:05:44Z dave $
+
+=head1 NAME
+
+get_streams
+
+=head1 DESCRIPTION
+
+Program to spider the BBC Radio web site and look for all of the Real
+Audio programme streams.
+
+The streams that are found are then written to an YAML file for later
+processing elsewhere.
+
+=cut
+
+use strict;
+use warnings;
+
+require BBCRobot;
+
+use XML::LibXML;
+use DateTime;
+use DateTime::Format::Strptime;
+use DateTime::Duration;
+use YAML qw(DumpFile);
+use Data::Dumper;
+
+my $yaml_file = shift || 'streams.yaml';
+
+my $start_url = 'http://www.bbc.co.uk/radio/aod/availability';
+my @stations  = qw(radio1 radio2 radio3 radio4 fivelive 1xtra 6music bbc7
+                   asiannetwork alba radioscotland radioulster radiofoyle
+                   radiowales radiocymru);
+
+my $now = DateTime->now;
+my $ua  = BBCRobot->new;
+my $p   = XML::LibXML->new;
+my $dt  = DateTime::Format::Strptime->new(
+  pattern => '%Y-%m-%dT%H:%M:%S%Z',
+);
+
+my %stations;
+
+my %xpath = (
+  pid      => 'pid',
+  title    => 'title',
+  service  => 'service',
+  synopsis => 'synopsis',
+  start    => 'broadcast/@start',
+  duration => 'broadcast/@duration',
+  av_start => 'availability/@start',
+  av_end   => 'availability/@end',
+  media    => 'links/link[@type="mediaselector"]',
+);
+
+foreach (@stations) {
+  process_station("$start_url/$_.xml");
+  last;
+}
+
+DumpFile $yaml_file, \%stations;
+
+sub process_station {
+  warn "Getting $_[0]\n";
+  my $resp = $ua->get($_[0]);
+
+  die "$_[0] : ", $resp->status_line unless $resp->is_success;
+
+  my $xml = $p->parse_string($resp->content);
+
+  foreach ($xml->findnodes('//entry')) {
+    my $show;
+
+    for my $x (keys %xpath) {
+      $show->{$x} = $_->findvalue($xpath{$x});
+    }
+
+    $show->{av_start} = $dt->parse_datetime($show->{av_start});
+    $show->{av_end}   = $dt->parse_datetime($show->{av_end});
+
+    next unless $show->{av_start} <= $now
+         and    $show->{av_end}   >= $now;
+
+    $show->{title} =~ s|,\s*\d\d/\d\d\/\d\d\d\d\s*||;
+    $show->{duration} = DateTime::Duration->new(seconds => $show->{duration});
+    $show->{start} = $dt->parse_datetime($show->{start});
+
+    push @{$stations{$show->{service}}{$show->{title}}}, $show;
+  }
+}
+
+=pod
+my $div = $doc->look_down(_tag => 'div',
+                          id   => 'network');
+
+die "No stations found\n" unless $div;
+
+foreach ($div->find('a')) {
+  my $a = a_href($_, $start_url);
+  warn "Getting $a->{text}\n";
+  my $station = get_station($a->{href}->as_string, lc $a->{text});
+  $station->{name} = $a->{text};
+  $station->{url} = $a->{href}->as_string;
+
+  push @stations, $station;
+
+  last if $ENV{BBC_STREAMS_DEBUG} and @stations >= 2;
+}
+
+DumpFile $yaml_file, \@stations;
+
+sub get {
+  my $url = shift;
+
+  my $r = $ua->get($url);
+
+  warn "$url => " . $r->status_line if $r->is_error;
+
+  return $r->content;
+}
+
+sub get_station {
+  my $url = shift;
+  my $name = shift;
+
+  my $doc = HTML::TreeBuilder->new;
+  $doc->parse(get($url));
+
+  my $station;
+
+  my $live_div = $doc->look_down(_tag => 'div',
+                                 id   => 'livelinks');
+
+  if ($live_div) {
+    foreach ($live_div->find('a')) {
+      push @{$station->{live}}, get_streams($_, $url);
+    }
+  } else {
+    warn "No live links found at $url\n";
+  }
+
+  my $az_div = $doc->look_down(_tag => 'div',
+                               id   => 'az');
+
+  if ($az_div) {
+    foreach my $prog ($az_div->find('li')) {
+      warn "  Getting " . $prog->as_text . "\n";
+      foreach ($prog->find('a')) {
+	my $bcast = get_streams($_, $url);
+	if ($bcast->{text} =~ /^(SUN|MON|TUE|WED|THU|FRI|SAT)$/i) {
+	  push @{$station->{az}[-1]{days}}, $bcast;
+	} else {
+	  push @{$station->{az}}, $bcast;
+	}
+      }
+      last if $ENV{BBC_STREAMS_DEBUG} and @{$station->{az}} >= 2;
+    }
+  } else {
+    warn "No program links found at $url\n";
+  }
+
+  return $station;
+}
+
+sub get_streams {
+  my $elem = shift;
+  my $base = shift;
+
+  my $a = a_href($elem, $base);
+
+  my $doc = HTML::TreeBuilder->new->parse(get($a->{href}->as_string));
+  my $emb = $doc->find('embed');
+  unless ($emb) {
+    warn 'No <embed> ' . $a->{href}->as_string . "\n";
+    return;
+  }
+  my %attrs = $emb->all_attr;
+  my $ram = get(URI->new_abs($attrs{src}, $base)->as_string);
+  my @streams = $ram =~ /^\s*((?:rtsp|pnm):\S+)/mg;
+
+  $a->{standalone} = $doc->as_HTML =~ /stand-alone Real Player/;
+  $a->{radplay} = $a->{href}->as_string;
+  $a->{ram} = URI->new_abs($attrs{src}, $base)->as_string;
+  $a->{streams} = \@streams;
+  $a->{href} = $a->{href}->as_string;
+
+  return $a;
+}
+
+sub a_href {
+  my $a = shift;
+  my $base = shift;
+
+  my %a = $a->all_attr;
+
+  my $text = $a->as_text;
+  $text =~ s/^\s+//;
+  $text =~ s/\s+$//;
+
+  return { href => URI->new_abs($a{href}, $base),
+           text => $text };
+}
+
+=head1 AUTHOR
+
+Dave Cross E<lt>dave@dave.org.ukE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2005, Dave Cross, All rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
