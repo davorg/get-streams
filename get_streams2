@@ -22,6 +22,7 @@ use warnings;
 require BBCRobot;
 
 use XML::LibXML;
+use XML::LibXML::XPathContext;
 use DateTime;
 use DateTime::Format::Strptime;
 use DateTime::Duration;
@@ -30,9 +31,30 @@ use YAML qw(DumpFile);
 my $yaml_file = shift || 'streams.yaml';
 
 my $start_url = 'http://www.bbc.co.uk/radio/aod/availability';
-my @stations  = qw(radio1 radio2 radio3 radio4 fivelive 1xtra 6music bbc7
+my @stat_list = qw(radio1 radio2 radio3 radio4 fivelive 1xtra 6music bbc7
                    asiannetwork alba radioscotland radioulster radiofoyle
                    radiowales radiocymru);
+
+my %stat_name = (
+  bbc_1xtra => '1Xtra',
+  bbc_6music => '6 Music',
+  bbc_7 => 'BBC 7',
+  bbc_asian_network => 'Asian Network',
+  bbc_radio_cymru => 'Radio Cymru',
+  bbc_radio_five_live => 'Five Live',
+  bbc_radio_five_live_sports_extra => 'Five Live Sports Extra',
+  bbc_radio_fourfm => 'Radio 4 FM',
+  bbc_radio_fourlw => 'Radio 4 LW',
+  bbc_radio_foyle => 'Radio Foyle',
+  bbc_radio_nan_gaidheal => 'Radio nan Gaidheal',
+  bbc_radio_one => 'Radio 1',
+  bbc_radio_scotland_fm => 'Radio Scotland FM',
+  bbc_radio_scotland_mw => 'Radio Scotland LW',
+  bbc_radio_three => 'Radio Three',
+  bbc_radio_two => 'Radio Two',
+  bbc_radio_ulster => 'Radio Ulster',
+  bbc_radio_wales_fm => 'Radio Wales',
+);
 
 my $now = DateTime->now;
 my $ua  = BBCRobot->new;
@@ -55,12 +77,14 @@ my %xpath = (
   media    => 'links/link[@type="mediaselector"]',
 );
 
-foreach (@stations) {
+foreach (@stat_list) {
   process_station("$start_url/$_.xml");
-  last;
 }
 
-DumpFile $yaml_file, \%stations;
+my @stations = map { { name  => $_,
+                       shows => $stations{$_} } } sort keys %stations;
+
+DumpFile $yaml_file, \@stations;
 
 sub process_station {
   warn "Getting $_[0]\n";
@@ -83,16 +107,21 @@ sub process_station {
     next unless $show->{av_start} <= $now
          and    $show->{av_end}   >= $now;
 
-    $show->{title} =~ s|,\s*\d\d/\d\d\/\d\d\d\d\s*||;
+    $show->{title}    =~ s|,\s*\d\d/\d\d\/\d\d\d\d\s*||;
     $show->{duration} = DateTime::Duration->new(seconds => $show->{duration});
-    $show->{start} = $dt->parse_datetime($show->{start});
+    $show->{start}    = $dt->parse_datetime($show->{start});
+    $show->{service}  = $stat_name{$show->{service}};
 
     $resp = $ua->get($show->{media});
     die "$show->{media} : ", $resp->status_line unless $resp->is_success;
 
     my $med_xml = $p->parse_string($resp->content);
+    my $xp      = XML::LibXML::XPathContext->new($med_xml);
+    $xp->registerNs('ms', 'http://bbc.co.uk/2008/mp/mediaselection');
 
-    $show->{ram} = 
+    $show->{ram} = $xp->findvalue(
+      '//ms:media[@encoding="real"]/ms:connection/@href'
+    );
 
     push @{$stations{$show->{service}}{$show->{title}}}, $show;
   }
