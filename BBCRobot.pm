@@ -5,7 +5,7 @@ use warnings;
 
 use LWP::RobotUA;
 
-our $VERSION = sprintf '%d', '$Revision$ ' =~ /(\d+)/;
+our $VERSION = 1.0;
 our @ISA = qw(LWP::RobotUA);
 
 my %defaults = (
